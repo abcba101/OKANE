@@ -1,0 +1,844 @@
+<meta charset="utf-8">
+<title>OKANE 収益化ナビ</title>
+<meta name="description" content="SNSの収益化条件までの進み具合、30日の投稿計画、ネタ帳、収益の試算、守るべきルールを1ページにまとめた道具">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=Shippori+Mincho+B1:wght@700;800&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap">
+<style>
+/* Layout: 預金通帳の記帳ページ。名前と日付印 → はじめの4ステップ → タブ → 罫線で区切った記帳行。 */
+:root {
+  --paper: #ECF1EE;
+  --sheet: #F8FBF9;
+  --rule: #CBD8D0;
+  --chip: #DEE8E2;
+  --ink: #1B2848;
+  --ink-soft: #526079;
+  --accent: #2A4A96;
+  --stamp: #C3382B;
+  --ok: #2C7650;
+  --warn: #9A6210;
+  --font-display: "Shippori Mincho B1", "Hiragino Mincho ProN", "Yu Mincho", serif;
+  --font-body: "Zen Kaku Gothic New", "Hiragino Sans", "Yu Gothic", "Meiryo", system-ui, sans-serif;
+  --font-num: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --r: 6px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #10172A; --sheet: #172036; --rule: #2B3754; --chip: #222D47;
+    --ink: #E4EAF4; --ink-soft: #9DAAC2; --accent: #93ABF2; --stamp: #F06A5C;
+    --ok: #62C38F; --warn: #E2A54A; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #10172A; --sheet: #172036; --rule: #2B3754; --chip: #222D47;
+  --ink: #E4EAF4; --ink-soft: #9DAAC2; --accent: #93ABF2; --stamp: #F06A5C;
+  --ok: #62C38F; --warn: #E2A54A; color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.75;
+  margin: 0;
+}
+.wrap { max-width: 880px; margin: 0 auto; padding-inline: 16px; padding-block: 24px 56px; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; line-height: 1.35; margin: 0; }
+p { margin: 0; }
+a { color: var(--accent); }
+.num { font-family: var(--font-num); font-variant-numeric: tabular-nums; }
+.muted { color: var(--ink-soft); }
+.small { font-size: 13px; }
+
+/* header */
+.top { display: flex; gap: 16px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+.top .name { min-width: 0; }
+.top .eyebrow { font-size: 12px; letter-spacing: .12em; color: var(--ink-soft); }
+.top h1 { font-size: clamp(26px, 6vw, 36px); font-weight: 800; }
+.top .lead { margin-top: 6px; max-width: 40em; }
+.dater {
+  width: 84px; height: 84px; flex: none;
+  border: 2px solid var(--stamp); border-radius: 50%;
+  color: var(--stamp); display: grid; grid-template-rows: 1fr auto 1fr;
+  text-align: center; transform: rotate(-6deg); font-weight: 700;
+}
+.dater span { display: grid; place-items: center; font-size: 11px; letter-spacing: .1em; }
+.dater b { font-family: var(--font-num); font-size: 13px; border-block: 2px solid var(--stamp); padding-block: 2px; }
+
+.steps { list-style: none; padding: 0; margin: 20px 0 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; counter-reset: s; }
+.steps li { counter-increment: s; border-top: 2px solid var(--ink); padding-top: 8px; font-size: 13px; line-height: 1.6; min-width: 0; }
+.steps li::before { content: counter(s); font-family: var(--font-num); font-weight: 600; display: block; color: var(--accent); }
+.steps strong { display: block; font-size: 14px; }
+@media (max-width: 640px) { .steps { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+/* tabs */
+.tabs {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5;
+  background: var(--paper); margin-top: 24px; padding-block: 8px;
+  border-bottom: 1px solid var(--rule);
+}
+.tabs [role="tablist"] { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; }
+.tabs button {
+  flex: none; font: inherit; font-weight: 700; font-size: 14px; cursor: pointer;
+  color: var(--ink-soft); background: transparent; border: 1px solid transparent;
+  border-radius: 999px; padding: 6px 14px;
+}
+.tabs button[aria-selected="true"] { color: var(--sheet); background: var(--ink); }
+.tabs button:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* panels */
+.panel { margin-top: 20px; display: grid; gap: 16px; }
+.sheet { background: var(--sheet); border: 1px solid var(--rule); border-radius: var(--r); padding: 16px; display: grid; gap: 14px; min-width: 0; }
+.sheet > h2 { font-size: 20px; }
+.sheet > h3 { font-size: 16px; }
+.hint { font-size: 13px; color: var(--ink-soft); }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chips button {
+  font: inherit; font-size: 13px; cursor: pointer; padding: 5px 12px; border-radius: 999px;
+  border: 1px solid var(--rule); background: var(--sheet); color: var(--ink);
+}
+.chips button[aria-pressed="true"] { border-color: var(--accent); background: var(--accent); color: var(--sheet); }
+
+label.f { display: grid; gap: 4px; font-size: 13px; font-weight: 700; min-width: 0; }
+input[type="number"], input[type="text"], select {
+  font: inherit; font-size: 15px; color: var(--ink); background: var(--paper);
+  border: 1px solid var(--rule); border-radius: 4px; padding: 6px 8px; width: 100%; min-width: 0;
+}
+input[type="number"] { font-family: var(--font-num); font-variant-numeric: tabular-nums; }
+.grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.grid3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 560px) { .grid2, .grid3 { grid-template-columns: minmax(0, 1fr); } }
+
+.btn {
+  font: inherit; font-weight: 700; font-size: 14px; cursor: pointer;
+  border: 1px solid var(--ink); background: var(--ink); color: var(--sheet);
+  border-radius: 4px; padding: 7px 14px; justify-self: start;
+}
+.btn.ghost { background: transparent; color: var(--ink); }
+.row-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.toast { font-size: 13px; color: var(--ok); }
+
+/* gauge ledger */
+.verdict { display: flex; gap: 16px; align-items: center; }
+.verdict .txt { min-width: 0; display: grid; gap: 2px; }
+.verdict .big { font-family: var(--font-display); font-size: 20px; font-weight: 800; }
+.hanko {
+  width: 68px; height: 68px; flex: none; border: 3px solid var(--stamp); border-radius: 50%;
+  display: grid; place-items: center; color: var(--stamp);
+  font-family: var(--font-display); font-weight: 800; font-size: 18px; transform: rotate(-12deg);
+}
+.hanko.pending { border-style: dashed; border-color: var(--rule); color: var(--ink-soft); font-size: 13px; transform: none; }
+.group { display: grid; gap: 0; border-top: 2px solid var(--ink); }
+.group-h { font-size: 12px; letter-spacing: .08em; color: var(--ink-soft); padding-top: 6px; }
+.req {
+  display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) minmax(0, 1.4fr);
+  gap: 6px 12px; align-items: center; padding-block: 10px; border-bottom: 1px solid var(--rule);
+}
+.req .lbl { font-weight: 700; font-size: 14px; line-height: 1.5; }
+.req .lbl small { display: block; font-weight: 400; color: var(--ink-soft); font-size: 12px; }
+.req .in { display: flex; align-items: center; gap: 6px; }
+.req .in span { font-size: 12px; color: var(--ink-soft); flex: none; }
+.bar { height: 8px; background: var(--chip); border-radius: 999px; overflow: hidden; }
+.bar i { display: block; height: 100%; background: var(--accent); border-radius: 999px; }
+.bar.done i { background: var(--ok); }
+.req .st { font-size: 12px; display: grid; gap: 4px; }
+.req .st .ok { color: var(--ok); font-weight: 700; }
+@media (max-width: 560px) { .req { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } .req .st { grid-column: 1 / -1; } }
+.checks { display: grid; gap: 6px; }
+.checks label { display: flex; gap: 8px; align-items: flex-start; font-size: 14px; }
+.checks input { margin-top: 5px; accent-color: var(--accent); }
+.alert { border-left: 3px solid var(--warn); padding: 6px 0 6px 12px; font-size: 13px; }
+.alert b { color: var(--warn); }
+.example-tag { font-size: 12px; color: var(--warn); font-weight: 700; }
+
+/* ledgers (plan, ideas, sim) */
+.ledger-wrap { overflow-x: auto; }
+table.ledger { width: 100%; border-collapse: collapse; font-size: 14px; }
+table.ledger th { text-align: left; font-size: 12px; font-weight: 500; letter-spacing: .06em; color: var(--ink-soft); border-bottom: 2px solid var(--ink); padding: 6px 8px; white-space: nowrap; }
+table.ledger td { border-bottom: 1px solid var(--rule); padding: 8px; vertical-align: top; }
+table.ledger td.d { font-family: var(--font-num); font-variant-numeric: tabular-nums; white-space: nowrap; color: var(--ink-soft); }
+table.ledger tr.rest td { color: var(--ink-soft); }
+.pill { display: inline-block; font-size: 12px; font-weight: 700; padding: 1px 8px; border-radius: 999px; background: var(--chip); color: var(--ink); white-space: nowrap; }
+.pill.promo { background: transparent; border: 1px solid var(--stamp); color: var(--stamp); }
+ol.ideas { margin: 0; padding: 0; list-style: none; counter-reset: i; }
+ol.ideas li { counter-increment: i; display: grid; grid-template-columns: 3em minmax(0, 1fr) auto; gap: 8px; align-items: baseline; padding-block: 8px; border-bottom: 1px solid var(--rule); }
+ol.ideas li::before { content: "No." counter(i); font-family: var(--font-num); font-size: 12px; color: var(--ink-soft); }
+ol.ideas button { font: inherit; font-size: 12px; cursor: pointer; border: 1px solid var(--rule); background: transparent; color: var(--ink); border-radius: 4px; padding: 2px 8px; }
+
+.sum { width: 100%; border-collapse: collapse; }
+.sum td { padding: 8px 0; border-bottom: 1px solid var(--rule); }
+.sum td:last-child { text-align: right; font-family: var(--font-num); font-variant-numeric: tabular-nums; white-space: nowrap; padding-left: 12px; }
+.sum tr.total td { border-top: 2px solid var(--ink); font-weight: 700; font-size: 17px; }
+.tax { border: 1px solid var(--rule); border-radius: var(--r); padding: 10px 12px; font-size: 14px; display: grid; gap: 4px; }
+.tax.need { border-color: var(--warn); }
+.tax b { font-family: var(--font-display); font-size: 16px; }
+
+/* rules */
+.rules { display: grid; gap: 0; }
+.rule { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 10px; padding-block: 10px; border-bottom: 1px solid var(--rule); }
+.rule input { margin-top: 6px; accent-color: var(--ok); width: 18px; height: 18px; }
+.rule .t { font-weight: 700; }
+.rule .d { grid-column: 2; font-size: 13px; color: var(--ink-soft); }
+.rule.done .t { text-decoration: line-through; text-decoration-color: var(--ok); }
+.meter { font-family: var(--font-num); font-size: 13px; color: var(--ink-soft); }
+
+footer { margin-top: 32px; font-size: 12px; color: var(--ink-soft); display: grid; gap: 8px; }
+footer ul { margin: 0; padding-left: 1.2em; }
+@media (prefers-reduced-motion: no-preference) { .bar i { transition: width .35s ease; } }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="name">
+      <div class="eyebrow">SNS副業の記帳ノート</div>
+      <h1>OKANE 収益化ナビ</h1>
+      <p class="lead">収益化の条件まであとどれだけか、何を投稿するか、いくらになりそうか、何に気をつけるか。数字を入れると、この画面がそのまま計画表になります。</p>
+    </div>
+    <div class="dater" aria-label="条件の確認日 2026年10月12日">
+      <span>条件確認</span><b>26.10.12</b><span>OKANE</span>
+    </div>
+  </header>
+
+  <ol class="steps" aria-label="はじめの進め方">
+    <li><strong>SNSを1つ決める</strong>得意なことと、見たい人がいることが重なるジャンルで。</li>
+    <li><strong>30日続ける</strong>「投稿計画」タブの表どおりに出す。休みの日は数字を見る。</li>
+    <li><strong>すぐ稼げる柱を足す</strong>note・アフィリエイトは人数の条件なしで始められる。</li>
+    <li><strong>条件に届いたら申請</strong>「収益化ゲージ」が「達成」になったら各アプリで申し込む。</li>
+  </ol>
+
+  <nav class="tabs" aria-label="機能">
+    <div role="tablist" id="tablist">
+      <button role="tab" id="tab-gauge" aria-controls="p-gauge" aria-selected="true">収益化ゲージ</button>
+      <button role="tab" id="tab-plan" aria-controls="p-plan" aria-selected="false" tabindex="-1">投稿計画</button>
+      <button role="tab" id="tab-ideas" aria-controls="p-ideas" aria-selected="false" tabindex="-1">ネタ帳</button>
+      <button role="tab" id="tab-sim" aria-controls="p-sim" aria-selected="false" tabindex="-1">収益試算</button>
+      <button role="tab" id="tab-rules" aria-controls="p-rules" aria-selected="false" tabindex="-1">守ること</button>
+    </div>
+  </nav>
+
+  <!-- 収益化ゲージ -->
+  <section class="panel" id="p-gauge" role="tabpanel" aria-labelledby="tab-gauge">
+    <div class="sheet">
+      <h2>収益化の条件まで、あとどれだけ？</h2>
+      <p class="hint">SNSを選んで、アプリの分析画面に出ている自分の数字を入れてください。条件は2026年10月12日に公式発表などで確認したものです。申請前に必ず各アプリの画面でも確かめてください。</p>
+      <div class="chips" id="pf-chips" role="group" aria-label="SNSを選ぶ"></div>
+    </div>
+    <div class="sheet" id="gauge-body"></div>
+  </section>
+
+  <!-- 投稿計画 -->
+  <section class="panel" id="p-plan" role="tabpanel" aria-labelledby="tab-plan" hidden>
+    <div class="sheet">
+      <h2>30日の投稿計画</h2>
+      <p class="hint">ジャンルと読んでほしい人を入れると、今日から30日分の投稿テーマを並べます。「教える」を多めにして信頼を貯め、「紹介（PR）」は少なめにする配分です。</p>
+      <div class="grid2">
+        <label class="f" for="pl-genre">ジャンル
+          <input type="text" id="pl-genre" list="genre-list" value="節約・家計管理">
+        </label>
+        <label class="f" for="pl-target">読んでほしい人
+          <input type="text" id="pl-target" value="一人暮らしの20代">
+        </label>
+        <label class="f" for="pl-pf">使うSNS
+          <select id="pl-pf">
+            <option value="x">X</option>
+            <option value="yt">YouTube</option>
+            <option value="tiktok">TikTok</option>
+            <option value="ig">Instagram</option>
+            <option value="note">note</option>
+          </select>
+        </label>
+        <label class="f" for="pl-days">1週間に投稿する日数
+          <select id="pl-days">
+            <option>3</option><option>4</option><option selected>5</option><option>6</option><option>7</option>
+          </select>
+        </label>
+      </div>
+      <datalist id="genre-list">
+        <option value="節約・家計管理"><option value="自炊・作り置き"><option value="筋トレ・ダイエット"><option value="勉強法・資格">
+        <option value="プログラミング入門"><option value="イラスト・お絵描き"><option value="ゲーム攻略"><option value="育児・子育て">
+        <option value="ペット・猫"><option value="ガジェット・家電"><option value="旅行・おでかけ"><option value="転職・仕事術">
+      </datalist>
+      <p class="alert" id="pl-tip"></p>
+      <div class="row-actions">
+        <button class="btn" id="pl-copy" type="button">表をテキストでコピー</button>
+        <span class="toast" id="pl-toast" role="status"></span>
+      </div>
+      <div class="ledger-wrap">
+        <table class="ledger" id="pl-table">
+          <thead><tr><th>日付</th><th>種類</th><th>投稿テーマ</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ネタ帳 -->
+  <section class="panel" id="p-ideas" role="tabpanel" aria-labelledby="tab-ideas" hidden>
+    <div class="sheet">
+      <h2>ネタ帳</h2>
+      <p class="hint">「投稿計画」で入れたジャンルと読んでほしい人から、伸びやすい型で投稿タイトルを30本作ります。そのままではなく、自分の体験や数字を足して使ってください。</p>
+      <div class="row-actions">
+        <button class="btn" id="id-shuffle" type="button">別の並びで出す</button>
+        <button class="btn ghost" id="id-copy" type="button">30本まとめてコピー</button>
+        <span class="toast" id="id-toast" role="status"></span>
+      </div>
+      <ol class="ideas" id="id-list"></ol>
+    </div>
+  </section>
+
+  <!-- 収益試算 -->
+  <section class="panel" id="p-sim" role="tabpanel" aria-labelledby="tab-sim" hidden>
+    <div class="sheet">
+      <h2>ひと月にいくらになりそう？</h2>
+      <p class="hint">最初に入っている数字は<strong>例</strong>です。再生単価やクリック数は人によって大きく違うので、各アプリの分析画面の実際の数字に書き換えてください。収入の約束ではありません。</p>
+      <h3>広告・再生の報酬</h3>
+      <div class="grid2">
+        <label class="f" for="s-views">1か月の再生・表示回数<input type="number" id="s-views" min="0" step="1000" value="200000"></label>
+        <label class="f" for="s-rpm">1,000回あたりの報酬（円）<input type="number" id="s-rpm" min="0" step="1" value="50"></label>
+      </div>
+      <h3>アフィリエイト（紹介リンク）</h3>
+      <div class="grid2">
+        <label class="f" for="a-clicks">1か月のリンクのクリック数<input type="number" id="a-clicks" min="0" step="10" value="1000"></label>
+        <label class="f" for="a-cvr">クリックした人が買う割合（%）<input type="number" id="a-cvr" min="0" max="100" step="0.1" value="2"></label>
+        <label class="f" for="a-price">1件の平均購入額（円）<input type="number" id="a-price" min="0" step="100" value="3000"></label>
+        <label class="f" for="a-rate">紹介料率（%）<input type="number" id="a-rate" min="0" max="100" step="0.5" value="3"></label>
+      </div>
+      <h3>noteの有料記事・メンバーシップ</h3>
+      <div class="grid2">
+        <label class="f" for="n-price">価格（円）<input type="number" id="n-price" min="0" step="100" value="500"></label>
+        <label class="f" for="n-count">1か月に売れる数<input type="number" id="n-count" min="0" step="1" value="10"></label>
+        <label class="f" for="n-pay">主な支払い方法
+          <select id="n-pay">
+            <option value="0.05">クレジットカード（5%）</option>
+            <option value="0.07">PayPay（7%）</option>
+            <option value="0.065">PayPal（6.5%）</option>
+            <option value="0.15">携帯キャリア決済（15%）</option>
+          </select>
+        </label>
+        <label class="f" for="n-kind">売り方
+          <select id="n-kind">
+            <option value="0.10">有料記事・マガジン・メンバーシップ（10%）</option>
+            <option value="0.20">定期購読マガジン（20%）</option>
+          </select>
+        </label>
+      </div>
+      <p class="hint">noteの手数料は公式ヘルプの計算どおりです。決済手数料を引き、残りからプラットフォーム利用料を引き、振込手数料270円を月1回として差し引いています。</p>
+    </div>
+    <div class="sheet">
+      <h2>試算の結果</h2>
+      <table class="sum" id="sim-sum"></table>
+      <div class="grid2">
+        <label class="f" for="t-role">あなたの立場
+          <select id="t-role">
+            <option value="salary">会社員・パート（年末調整あり）</option>
+            <option value="other">それ以外（学生・フリーランス・無職など）</option>
+          </select>
+        </label>
+        <label class="f" for="t-exp">1年の経費（円）<input type="number" id="t-exp" min="0" step="1000" value="60000"></label>
+      </div>
+      <div class="tax" id="tax"></div>
+    </div>
+  </section>
+
+  <!-- 守ること -->
+  <section class="panel" id="p-rules" role="tabpanel" aria-labelledby="tab-rules" hidden>
+    <div class="sheet">
+      <h2>稼ぐ前に守ること</h2>
+      <p class="hint">収益化が止まる、罰則がある、お金をだまし取られる。この3つを避けるためのチェックです。済んだものにチェックを入れてください。</p>
+      <p class="meter" id="rule-meter"></p>
+      <div class="rules" id="rules"></div>
+    </div>
+  </section>
+
+  <footer>
+    <p>このページは収入を約束するものではありません。各SNSの条件は予告なく変わります。数字の入力はこのブラウザの中だけに保存され、どこにも送信されません。</p>
+    <ul>
+      <li><a href="https://support.google.com/youtube/answer/13429240?hl=ja" target="_blank" rel="noopener">YouTube ヘルプ：拡充版 YouTube パートナー プログラムの概要</a></li>
+      <li><a href="https://support.google.com/youtube/answer/72851?hl=ja" target="_blank" rel="noopener">YouTube ヘルプ：YouTube パートナー プログラムの概要と利用資格</a></li>
+      <li><a href="https://help.x.com/en/using-x/original-content-rewards" target="_blank" rel="noopener">X ヘルプセンター：Original Content Rewards</a></li>
+      <li><a href="https://newsroom.tiktok.com/ja-jp/tiktok-creator-rewards-program" target="_blank" rel="noopener">TikTok Newsroom：Creator Rewards Program を開始</a></li>
+      <li><a href="https://about.fb.com/ja/news/2023/11/giving-more-creators-around-the-world-ways-to-earn-money/" target="_blank" rel="noopener">Meta：クリエイターの収益化ツールを強化（2023年11月）</a></li>
+      <li><a href="https://www.help-note.com/hc/ja/articles/360011358873" target="_blank" rel="noopener">note ヘルプ：コンテンツを販売する際に引かれる手数料</a></li>
+      <li><a href="https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1900.htm" target="_blank" rel="noopener">国税庁 No.1900 給与所得者で確定申告が必要な人</a></li>
+      <li><a href="https://www.kokusen.go.jp/soudan_now/data/moukebanashi.html" target="_blank" rel="noopener">国民生活センター：儲け話に関するトラブルにご注意！</a></li>
+    </ul>
+  </footer>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  // ---------- 保存（このブラウザの中だけ） ----------
+  var KEY = "okane-navi-v1";
+  var state = {};
+  try { state = JSON.parse(localStorage.getItem(KEY) || "{}") || {}; } catch (e) { state = {}; }
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
+  function $(id) { return document.getElementById(id); }
+  function yen(n) { return Math.round(n).toLocaleString("ja-JP"); }
+  function num(n) { return Math.round(n).toLocaleString("ja-JP"); }
+  function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+
+  // ---------- 収益化の条件（2026-10-12 確認） ----------
+  var YT_CHECKS = ["2段階認証をオンにしている", "コミュニティガイドラインの違反警告がない", "AdSenseアカウントを用意できる（18歳未満は保護者のアカウント）"];
+  var GAUGES = {
+    yt_ext: {
+      name: "YouTube 拡充版",
+      what: "メンバーシップやSuper Thanksなどのファンからの支援と、ショッピング機能",
+      groups: [
+        { mode: "all", items: [
+          { k: "subs", label: "チャンネル登録者", unit: "人", target: 500, ex: 180 },
+          { k: "vids", label: "直近90日に公開した動画", unit: "本", target: 3, ex: 6 }
+        ] },
+        { mode: "any", items: [
+          { k: "hours", label: "直近12か月の総再生時間", unit: "時間", target: 3000, ex: 640, win: 365 },
+          { k: "shorts", label: "直近90日のショート視聴回数", unit: "回", target: 3000000, ex: 420000, win: 90 }
+        ] }
+      ],
+      checks: YT_CHECKS,
+      alert: "広告収益の分配はこの段階では受け取れません。広告収益は「YouTube 広告」の条件です。",
+      src: { t: "YouTube ヘルプ：拡充版 YouTube パートナー プログラムの概要", u: "https://support.google.com/youtube/answer/13429240?hl=ja" }
+    },
+    yt_ads: {
+      name: "YouTube 広告",
+      what: "動画とショートの広告収益の分配",
+      groups: [
+        { mode: "all", items: [
+          { k: "subs", label: "チャンネル登録者", unit: "人", target: 1000, ex: 180 }
+        ] },
+        { mode: "any", items: [
+          { k: "hours", label: "直近12か月の総再生時間", unit: "時間", target: 4000, ex: 640, win: 365 },
+          { k: "shorts", label: "直近90日のショート視聴回数", unit: "回", target: 10000000, ex: 420000, win: 90 }
+        ] }
+      ],
+      checks: YT_CHECKS,
+      alert: "2027年2月1日から新しく申し込む人は「総再生時間8,000時間（直近365日）」か「ショート2,000万回（直近90日）」に引き上げられると2026年8月10日に発表されています。2027年1月31日までに条件を満たして申し込めば今の基準です。",
+      src: { t: "YouTube ヘルプ：YouTube パートナー プログラムの概要と利用資格", u: "https://support.google.com/youtube/answer/72851?hl=ja" }
+    },
+    x: {
+      name: "X",
+      what: "オリジナルコンテンツ報酬（自分で作った投稿の表示に応じた報酬）",
+      groups: [
+        { mode: "all", items: [
+          { k: "vf", label: "認証済みフォロワー", unit: "人", target: 500, ex: 120 },
+          { k: "imp", label: "直近90日、認証済みユーザーからのホームタイムライン表示", unit: "回", target: 500000, ex: 86000, win: 90 }
+        ] }
+      ],
+      checks: ["X Premium（またはPremium+、Premium Business）に加入している", "18歳以上", "Stripeで本人確認と受取口座の登録ができる"],
+      alert: "旧「クリエイター広告収益分配プログラム」は2026年9月7日で終了し、9月8日からこの制度です。返信（リプライ）で得た表示は数に入りません。他人の素材に一言添えただけの投稿や転載はオリジナルと見なされません。支払いは2週間ごと、最低30ドルからです。",
+      src: { t: "X ヘルプセンター：Original Content Rewards", u: "https://help.x.com/en/using-x/original-content-rewards" }
+    },
+    tiktok: {
+      name: "TikTok",
+      what: "Creator Rewards Program（1分以上のオリジナル動画の再生に応じた報酬）",
+      groups: [
+        { mode: "all", items: [
+          { k: "fol", label: "フォロワー", unit: "人", target: 10000, ex: 2300 },
+          { k: "views", label: "直近30日の動画視聴数", unit: "回", target: 100000, ex: 38000, win: 30 }
+        ] }
+      ],
+      checks: ["18歳以上", "個人アカウント（ビジネスアカウントは対象外）", "1分以上のオリジナル動画を投稿している"],
+      alert: "公式発表（2024年3月）は「フォロワー1万人以上、動画視聴数10万回以上」です。「直近30日」という期間は解説記事の記載なので、アプリ内の表示を優先してください。",
+      src: { t: "TikTok Newsroom：Creator Rewards Program を開始", u: "https://newsroom.tiktok.com/ja-jp/tiktok-creator-rewards-program" }
+    },
+    ig: {
+      name: "Instagram",
+      what: "リールのギフト（視聴者が贈る「スター」）",
+      groups: [
+        { mode: "all", items: [
+          { k: "fol", label: "フォロワー", unit: "人", target: 5000, ex: 900 }
+        ] }
+      ],
+      checks: ["プロアカウント（クリエイターかビジネス）にしている", "18歳以上", "パートナー収益化ポリシーを守っている"],
+      alert: "5,000人は2023年11月に日本で始まったときのMetaの発表です。その後500人に下がったという報道もありますが、公式には確認できませんでした。アプリ内の収益化の画面で自分が対象か確かめてください。",
+      src: { t: "Meta：クリエイターの収益化ツールを強化（2023年11月）", u: "https://about.fb.com/ja/news/2023/11/giving-more-creators-around-the-world-ways-to-earn-money/" }
+    }
+  };
+  var PF_ORDER = ["yt_ext", "yt_ads", "x", "tiktok", "ig"];
+
+  state.gauge = state.gauge || {};
+  state.gchecks = state.gchecks || {};
+  var currentPf = GAUGES[state.pf] ? state.pf : "x";
+  var paceDays = state.paceDays > 0 ? state.paceDays : 90;
+
+  function pfValues(pk) {
+    var saved = state.gauge[pk];
+    var out = {}, isEx = !saved;
+    GAUGES[pk].groups.forEach(function (g) { g.items.forEach(function (it) {
+      var v = saved && saved[it.k] != null ? Number(saved[it.k]) : it.ex;
+      out[it.k] = isFinite(v) && v >= 0 ? v : 0;
+    }); });
+    return { v: out, isEx: isEx };
+  }
+
+  function evaluate(pk, vals) {
+    var unmet = 0;
+    var groups = GAUGES[pk].groups.map(function (g) {
+      var items = g.items.map(function (it) {
+        var v = vals[it.k];
+        return { it: it, v: v, p: Math.min(1, v / it.target), done: v >= it.target };
+      });
+      var done = g.mode === "all" ? items.every(function (x) { return x.done; }) : items.some(function (x) { return x.done; });
+      if (!done) unmet += g.mode === "all" ? items.filter(function (x) { return !x.done; }).length : 1;
+      return { mode: g.mode, items: items, done: done };
+    });
+    return { groups: groups, unmet: unmet };
+  }
+
+  function renderChips() {
+    $("pf-chips").innerHTML = PF_ORDER.map(function (pk) {
+      return '<button type="button" data-pf="' + pk + '" aria-pressed="' + (pk === currentPf) + '">' + esc(GAUGES[pk].name) + "</button>";
+    }).join("");
+  }
+
+  function paceText(r) {
+    if (r.done) return '<span class="ok">達成</span>';
+    var rest = r.it.target - r.v;
+    var s = "あと " + num(rest) + " " + r.it.unit;
+    if (r.it.win) {
+      s += "<br>期間内に1日平均 約" + num(Math.ceil(r.it.target / r.it.win)) + " " + r.it.unit + " が必要";
+    } else if (r.it.k !== "vids") {
+      s += "<br>" + paceDays + "日で届くには1日 +" + num(Math.ceil(rest / paceDays)) + " " + r.it.unit;
+    }
+    return s;
+  }
+
+  function renderGauge() {
+    var G = GAUGES[currentPf];
+    var pv = pfValues(currentPf);
+    var ev = evaluate(currentPf, pv.v);
+    var checks = G.checks.map(function (c, i) {
+      var id = "gc-" + currentPf + "-" + i;
+      var on = !!(state.gchecks[currentPf] && state.gchecks[currentPf][i]);
+      return '<label for="' + id + '"><input type="checkbox" id="' + id + '" data-ci="' + i + '"' + (on ? " checked" : "") + "><span>" + esc(c) + "</span></label>";
+    }).join("");
+    var checksDone = G.checks.every(function (c, i) { return state.gchecks[currentPf] && state.gchecks[currentPf][i]; });
+    var allDone = ev.unmet === 0;
+
+    var html = '<div class="verdict">' +
+      (allDone ? '<div class="hanko" aria-hidden="true">達成</div>' : '<div class="hanko pending" aria-hidden="true">未達</div>') +
+      '<div class="txt"><span class="big">' + esc(G.name) + (allDone ? "：数字の条件は達成" : "：あと " + ev.unmet + " 項目") + "</span>" +
+      '<span class="small muted">' + esc(G.what) + "</span>" +
+      (allDone && !checksDone ? '<span class="small" style="color:var(--warn)">下の「数字以外の条件」も確認してから申し込んでください。</span>' : "") +
+      (allDone && checksDone ? '<span class="small" style="color:var(--ok)">アプリの収益化画面から申し込めます。</span>' : "") +
+      "</div></div>";
+
+    if (pv.isEx) html += '<p class="example-tag">いま入っているのは例の数値です。自分の数字に書き換えてください。</p>';
+
+    ev.groups.forEach(function (g) {
+      html += '<div class="group"><div class="group-h">' + (g.mode === "any" ? "どちらか一方を満たせばよい" : "すべて満たす") + "</div>";
+      g.items.forEach(function (r) {
+        var id = "g-" + currentPf + "-" + r.it.k;
+        html += '<div class="req">' +
+          '<label class="lbl" for="' + id + '">' + esc(r.it.label) + "<small>条件 " + num(r.it.target) + " " + r.it.unit + "</small></label>" +
+          '<div class="in"><input type="number" inputmode="numeric" min="0" id="' + id + '" data-k="' + r.it.k + '" value="' + r.v + '"><span>' + r.it.unit + "</span></div>" +
+          '<div class="st"><div class="bar' + (r.done ? " done" : "") + '" role="img" aria-label="進み具合 ' + Math.floor(r.p * 100) + '%"><i style="width:' + (r.p * 100).toFixed(1) + '%"></i></div>' +
+          "<span>" + Math.floor(r.p * 100) + "%　" + paceText(r) + "</span></div>" +
+          "</div>";
+      });
+      html += "</div>";
+    });
+
+    html += '<div class="grid2"><label class="f" for="pace-days">目標までの日数（フォロワー・登録者の1日の目安に使う）<input type="number" id="pace-days" min="1" max="3650" value="' + paceDays + '"></label></div>';
+    html += "<h3>数字以外の条件</h3><div class=\"checks\">" + checks + "</div>";
+    html += '<p class="alert"><b>注意　</b>' + esc(G.alert) + "</p>";
+    html += '<p class="small">出典：<a href="' + G.src.u + '" target="_blank" rel="noopener">' + esc(G.src.t) + "</a></p>";
+    $("gauge-body").innerHTML = html;
+  }
+
+  $("pf-chips").addEventListener("click", function (e) {
+    var b = e.target.closest("button[data-pf]");
+    if (!b) return;
+    currentPf = b.getAttribute("data-pf");
+    state.pf = currentPf; save();
+    renderChips(); renderGauge();
+  });
+  $("gauge-body").addEventListener("change", function (e) {
+    var t = e.target;
+    if (t.id === "pace-days") {
+      var d = Math.max(1, Math.min(3650, Math.round(Number(t.value) || 90)));
+      paceDays = d; state.paceDays = d; save(); renderGauge(); return;
+    }
+    if (t.matches("input[data-k]")) {
+      var pv = pfValues(currentPf).v;
+      pv[t.getAttribute("data-k")] = Math.max(0, Number(t.value) || 0);
+      state.gauge[currentPf] = pv; save(); renderGauge();
+      var again = $(t.id); if (again) again.focus();
+      return;
+    }
+    if (t.matches("input[data-ci]")) {
+      state.gchecks[currentPf] = state.gchecks[currentPf] || {};
+      state.gchecks[currentPf][t.getAttribute("data-ci")] = t.checked;
+      save(); renderGauge();
+      var c = $(t.id); if (c) c.focus();
+    }
+  });
+
+  // ---------- 投稿計画とネタ帳 ----------
+  var PILLARS = {
+    teach: { l: "教える", t: [
+      "{t}向け：{g}で最初にやること3つ",
+      "{g}の基本を1分で説明します",
+      "知らないと損する{g}の小ワザ",
+      "{g}でよく聞かれる質問に答えます",
+      "{g}の始め方を手順どおりに",
+      "{g}で使っている道具と使い方"
+    ] },
+    empathy: { l: "共感", t: [
+      "{t}あるある：{g}で一度はやる失敗",
+      "{g}を始めて分かった本音",
+      "{g}が続かない人の共通点と、続けるコツ",
+      "{g}でやめてよかったこと"
+    ] },
+    record: { l: "記録", t: [
+      "今週の{g}の記録と反省",
+      "{g}にかかったお金と時間を全部公開",
+      "{g}のビフォーアフター",
+      "{g}を30日続けた結果（数字を公開）"
+    ] },
+    compare: { l: "比較", t: [
+      "{g}のおすすめ5選（実際に使った順）",
+      "{g}：よく比べられる2つを試して比べた",
+      "{g}の初心者向けと中級者向けの違い",
+      "{g}でお金をかけるところ、かけないところ"
+    ] },
+    talk: { l: "交流", t: [
+      "{t}に質問：{g}で一番困っていることは？",
+      "{g}のお悩み募集。次の投稿で答えます",
+      "アンケート：{g}で次に知りたいのはどれ？"
+    ] },
+    promo: { l: "紹介（PR）", t: [
+      "【PR表記を入れる】{g}で本当に使っている物の紹介",
+      "{g}のまとめを有料記事・まとめページにしました（誘導）",
+      "【PR表記を入れる】{g}の道具、買ってよかった物だけ"
+    ] }
+  };
+  var CYCLE = ["teach", "empathy", "record", "teach", "compare", "talk", "teach", "empathy", "promo"];
+  var HOOKS = [
+    "{g}で絶対にやってはいけない3つのこと",
+    "結論、{g}はこれだけやればいい",
+    "保存版：{g}のチェックリスト",
+    "{t}の私が{g}で失敗した話",
+    "{g}を1年続けて分かった、最初に知りたかったこと",
+    "{g}の「よくある勘違い」を正します",
+    "{g}で月に○円変わった方法（自分の数字を入れる）",
+    "3分で分かる{g}の全体像"
+  ];
+  var TIPS = {
+    x: "X：本文＋画像1枚が基本。報酬の対象は自分で作った投稿で、転載や画像に文字を載せただけの投稿はオリジナルと見なされません。",
+    yt: "YouTube：縦のショートと横の通常動画を混ぜる。8分以上の動画には途中の広告を入れられます。",
+    tiktok: "TikTok：Creator Rewards Program の報酬対象は1分以上のオリジナル動画です。",
+    ig: "Instagram：リールを中心に、保存して見返せる複数枚の画像投稿を混ぜる。",
+    note: "note：無料記事で読者を集め、有料記事やメンバーシップにつなげる。"
+  };
+
+  state.plan = state.plan || {};
+  ["genre", "target", "pf", "days"].forEach(function (k) {
+    var el = $("pl-" + k);
+    if (state.plan[k] != null && el) el.value = state.plan[k];
+  });
+  function planInputs() {
+    return {
+      g: ($("pl-genre").value || "").trim() || "あなたのジャンル",
+      t: ($("pl-target").value || "").trim() || "読者",
+      pf: $("pl-pf").value,
+      days: Number($("pl-days").value) || 5
+    };
+  }
+  function fill(s, p) { return s.split("{g}").join(p.g).split("{t}").join(p.t); }
+
+  var WD = ["日", "月", "火", "水", "木", "金", "土"];
+  var planRows = [];
+  function buildPlan() {
+    var p = planInputs();
+    var start = new Date(); start.setHours(0, 0, 0, 0);
+    var used = {}; var postN = 0;
+    planRows = [];
+    for (var i = 0; i < 30; i++) {
+      var d = new Date(start.getTime()); d.setDate(start.getDate() + i);
+      var date = (d.getMonth() + 1) + "/" + d.getDate() + "（" + WD[d.getDay()] + "）";
+      // 1週間のうち p.days 日に投稿日を散らす（7と互いに素な掛け算で並べ替え）
+      var posts = ((i % 7) * p.days) % 7 < p.days;
+      if (!posts) { planRows.push({ date: date, kind: null, text: "休み：反応のよかった投稿を見返して、次の型を決める" }); continue; }
+      var key = CYCLE[postN % CYCLE.length];
+      if (key === "promo" && postN < 10) key = "record";
+      var list = PILLARS[key].t;
+      used[key] = (used[key] || 0);
+      var text = fill(list[used[key] % list.length], p);
+      used[key]++;
+      postN++;
+      planRows.push({ date: date, kind: key, text: text });
+    }
+    var tb = $("pl-table").querySelector("tbody");
+    tb.innerHTML = planRows.map(function (r) {
+      if (!r.kind) return '<tr class="rest"><td class="d">' + r.date + "</td><td>—</td><td>" + esc(r.text) + "</td></tr>";
+      return '<tr><td class="d">' + r.date + '</td><td><span class="pill' + (r.kind === "promo" ? " promo" : "") + '">' + PILLARS[r.kind].l + "</span></td><td>" + esc(r.text) + "</td></tr>";
+    }).join("");
+    $("pl-tip").textContent = TIPS[p.pf] || "";
+  }
+
+  var ideaOrder = null;
+  function allIdeas() {
+    var p = planInputs(); var out = [];
+    Object.keys(PILLARS).forEach(function (k) { PILLARS[k].t.forEach(function (s) { out.push(fill(s, p)); }); });
+    HOOKS.forEach(function (s) { out.push(fill(s, p)); });
+    return out;
+  }
+  function renderIdeas() {
+    var ideas = allIdeas();
+    if (!ideaOrder || ideaOrder.length !== ideas.length) ideaOrder = ideas.map(function (_, i) { return i; });
+    var shown = ideaOrder.slice(0, 30).map(function (i) { return ideas[i]; });
+    $("id-list").innerHTML = shown.map(function (s, i) {
+      return '<li><span>' + esc(s) + '</span><button type="button" data-copy="' + i + '">コピー</button></li>';
+    }).join("");
+    $("id-list").dataset.items = JSON.stringify(shown);
+  }
+
+  function copyText(text, toastId, done) {
+    var toast = $(toastId);
+    function ok() { toast.textContent = done; setTimeout(function () { toast.textContent = ""; }, 2500); }
+    function fallback() {
+      var ta = document.createElement("textarea");
+      ta.value = text; ta.setAttribute("readonly", ""); ta.style.position = "fixed"; ta.style.opacity = "0";
+      document.body.appendChild(ta); ta.select();
+      var good = false; try { good = document.execCommand("copy"); } catch (e) {}
+      document.body.removeChild(ta);
+      toast.textContent = good ? done : "コピーできませんでした。文字を長押しして選んでください。";
+    }
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(ok, fallback);
+      else fallback();
+    } catch (e) { fallback(); }
+  }
+
+  function onPlanChange() {
+    state.plan = { genre: $("pl-genre").value, target: $("pl-target").value, pf: $("pl-pf").value, days: $("pl-days").value };
+    save(); buildPlan(); renderIdeas();
+  }
+  ["pl-genre", "pl-target"].forEach(function (id) { $(id).addEventListener("input", onPlanChange); });
+  ["pl-pf", "pl-days"].forEach(function (id) { $(id).addEventListener("change", onPlanChange); });
+  $("pl-copy").addEventListener("click", function () {
+    var text = planRows.map(function (r) { return r.date + "\t" + (r.kind ? PILLARS[r.kind].l : "休み") + "\t" + r.text; }).join("\n");
+    copyText(text, "pl-toast", "30日分をコピーしました");
+  });
+  $("id-shuffle").addEventListener("click", function () {
+    var n = allIdeas().length; ideaOrder = [];
+    for (var i = 0; i < n; i++) ideaOrder.push(i);
+    for (var j = n - 1; j > 0; j--) { var r = Math.floor(Math.random() * (j + 1)); var tmp = ideaOrder[j]; ideaOrder[j] = ideaOrder[r]; ideaOrder[r] = tmp; }
+    renderIdeas();
+  });
+  $("id-copy").addEventListener("click", function () {
+    var items = JSON.parse($("id-list").dataset.items || "[]");
+    copyText(items.join("\n"), "id-toast", "30本をコピーしました");
+  });
+  $("id-list").addEventListener("click", function (e) {
+    var b = e.target.closest("button[data-copy]"); if (!b) return;
+    var items = JSON.parse($("id-list").dataset.items || "[]");
+    copyText(items[Number(b.getAttribute("data-copy"))] || "", "id-toast", "1本コピーしました");
+  });
+
+  // ---------- 収益試算 ----------
+  var SIM_IDS = ["s-views", "s-rpm", "a-clicks", "a-cvr", "a-price", "a-rate", "n-price", "n-count", "n-pay", "n-kind", "t-role", "t-exp"];
+  state.sim = state.sim || {};
+  SIM_IDS.forEach(function (id) { if (state.sim[id] != null && $(id)) $(id).value = state.sim[id]; });
+  function v(id) { var x = Number($(id).value); return isFinite(x) && x > 0 ? x : 0; }
+
+  // note公式ヘルプの計算：価格 −（価格×決済手数料率）−（残り×プラットフォーム利用料率）。振込手数料270円は月1回で計算。
+  function noteNet(price, count, payRate, platRate) {
+    if (!price || !count) return 0;
+    var fee1 = price * payRate;
+    var fee2 = (price - fee1) * platRate;
+    return Math.max(0, (price - fee1 - fee2) * count - 270);
+  }
+
+  function renderSim() {
+    var ads = v("s-views") / 1000 * v("s-rpm");
+    var aff = v("a-clicks") * (v("a-cvr") / 100) * v("a-price") * (v("a-rate") / 100);
+    var nt = noteNet(v("n-price"), v("n-count"), Number($("n-pay").value), Number($("n-kind").value));
+    var month = ads + aff + nt;
+    var year = month * 12;
+    var exp = v("t-exp");
+    var income = Math.max(0, year - exp);
+    $("sim-sum").innerHTML =
+      "<tr><td>広告・再生の報酬</td><td>" + yen(ads) + " 円</td></tr>" +
+      "<tr><td>アフィリエイト</td><td>" + yen(aff) + " 円</td></tr>" +
+      "<tr><td>note（手数料・振込手数料を引いた額）</td><td>" + yen(nt) + " 円</td></tr>" +
+      '<tr class="total"><td>ひと月の合計</td><td>' + yen(month) + " 円</td></tr>" +
+      "<tr><td>1年続いた場合</td><td>" + yen(year) + " 円</td></tr>" +
+      "<tr><td>経費を引いた1年の所得</td><td>" + yen(income) + " 円</td></tr>";
+
+    var role = $("t-role").value, box = $("tax");
+    if (role === "salary" && income > 200000) {
+      box.className = "tax need";
+      box.innerHTML = "<b>確定申告が必要になる見込みです</b><span>会社員・パートで年末調整を受けている人は、副業などの所得が年20万円を超えると所得税の確定申告が必要です。経費の領収書と、各SNSの支払い明細を保存しておきましょう。</span>";
+    } else if (role === "salary") {
+      box.className = "tax";
+      box.innerHTML = "<b>所得税の確定申告は原則いりません</b><span>年20万円以下なら所得税の確定申告は原則不要です。ただし住民税には20万円の基準がないので、お住まいの市区町村への住民税の申告は必要です。医療費控除などで確定申告をする年は、この所得も含めて申告します。</span>";
+    } else {
+      box.className = "tax";
+      box.innerHTML = "<b>給与のない人は基準が違います</b><span>20万円の基準は年末調整を受けている給与所得者のものです。学生・フリーランス・無職の人は、基礎控除などで基準が変わるので、国税庁の「確定申告書等作成コーナー」か税務署で確かめてください。</span>";
+    }
+  }
+  SIM_IDS.forEach(function (id) {
+    $(id).addEventListener("input", function () { state.sim[id] = $(id).value; save(); renderSim(); });
+    $(id).addEventListener("change", function () { state.sim[id] = $(id).value; save(); renderSim(); });
+  });
+
+  // ---------- 守ること ----------
+  var RULES = [
+    { k: "pr", t: "案件やアフィリエイトの投稿には「PR」「広告」と分かるように書く", d: "2023年10月1日から、広告なのに広告と分からない投稿（ステルスマーケティング）は景品表示法の規制対象です。責任を問われるのは主に依頼した企業ですが、表記しない人には案件が来なくなります。" },
+    { k: "orig", t: "他人の動画・画像・文章を転載しない", d: "著作権の問題に加え、XやTikTokの報酬はオリジナルの投稿だけが対象です。" },
+    { k: "nofake", t: "フォロワーの購入、自動いいね、自動フォローのツールを使わない", d: "数字を不正に増やすと、規約違反で収益化の停止やアカウント凍結になります。" },
+    { k: "scam", t: "「いいねを押すだけ」「スクショを撮るだけ」で稼げる副業に近づかない", d: "国民生活センターが2026年5月19日に注意を呼びかけた手口です。最初に少額を払い、あとで高額の振り込みを求めます。困ったら消費者ホットライン188へ。" },
+    { k: "shozai", t: "借金してまで高額な情報商材・コンサル・スクールに払わない", d: "「誰でも簡単に月100万円」といった宣伝は疑ってください。借金して払ったが稼げず返済に困る相談が多く寄せられています。" },
+    { k: "2fa", t: "全部のSNSで2段階認証をオンにする", d: "乗っ取られると収益もアカウントも失います。YouTubeの収益化では2段階認証が条件です。" },
+    { k: "tax", t: "収入と経費を毎月メモし、領収書を残す", d: "会社員は副業の所得が年20万円を超えると確定申告が必要です。20万円以下でも住民税の申告は必要です。" },
+    { k: "job", t: "勤め先の就業規則で副業が認められているか確かめる", d: "副業禁止や届け出制の会社があります。" },
+    { k: "privacy", t: "本名・住所・最寄り駅・学校や職場が分かる情報を出さない", d: "写真の背景や窓の外の景色からも場所は特定されます。" },
+    { k: "age", t: "18歳未満なら保護者と一緒に進める", d: "X、TikTok、Instagramのギフトなど多くの収益化は18歳以上が条件です。YouTubeは保護者のAdSenseで受け取れます。" }
+  ];
+  state.rules = state.rules || {};
+  function renderRules() {
+    var n = 0;
+    $("rules").innerHTML = RULES.map(function (r) {
+      var on = !!state.rules[r.k]; if (on) n++;
+      return '<div class="rule' + (on ? " done" : "") + '"><input type="checkbox" id="r-' + r.k + '" data-r="' + r.k + '"' + (on ? " checked" : "") + '><label class="t" for="r-' + r.k + '">' + esc(r.t) + '</label><p class="d">' + esc(r.d) + "</p></div>";
+    }).join("");
+    $("rule-meter").textContent = "確認済み " + n + " / " + RULES.length;
+  }
+  $("rules").addEventListener("change", function (e) {
+    var t = e.target; if (!t.matches("input[data-r]")) return;
+    state.rules[t.getAttribute("data-r")] = t.checked; save(); renderRules();
+    var again = $(t.id); if (again) again.focus();
+  });
+
+  // ---------- タブ ----------
+  var TABS = ["gauge", "plan", "ideas", "sim", "rules"];
+  function showTab(name, focus) {
+    TABS.forEach(function (t) {
+      var on = t === name, b = $("tab-" + t);
+      b.setAttribute("aria-selected", on ? "true" : "false");
+      b.tabIndex = on ? 0 : -1;
+      $("p-" + t).hidden = !on;
+      if (on && focus) b.focus();
+    });
+    state.tab = name; save();
+  }
+  $("tablist").addEventListener("click", function (e) {
+    var b = e.target.closest("button[role=tab]"); if (b) showTab(b.id.slice(4));
+  });
+  $("tablist").addEventListener("keydown", function (e) {
+    var i = TABS.indexOf(state.tab || "gauge");
+    if (e.key === "ArrowRight") { showTab(TABS[(i + 1) % TABS.length], true); e.preventDefault(); }
+    if (e.key === "ArrowLeft") { showTab(TABS[(i + TABS.length - 1) % TABS.length], true); e.preventDefault(); }
+  });
+
+  // ---------- 起動 ----------
+  renderChips(); renderGauge(); buildPlan(); renderIdeas(); renderSim(); renderRules();
+  var hash = (location.hash || "").slice(1);
+  showTab(TABS.indexOf(hash) >= 0 ? hash : (TABS.indexOf(state.tab) >= 0 ? state.tab : "gauge"));
+})();
+</script>
